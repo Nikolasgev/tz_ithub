@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:tz_ithub/src/models/currency.dart';
 
-class CurrencyDetailScreen extends StatelessWidget {
+class CurrencyDetailScreen extends StatefulWidget {
   const CurrencyDetailScreen({super.key, required this.currency});
 
   final Currency currency;
 
   @override
+  State<CurrencyDetailScreen> createState() => _CurrencyDetailScreenState();
+}
+
+class _CurrencyDetailScreenState extends State<CurrencyDetailScreen> {
+  double convertedValue = 0.0;
+  @override
   Widget build(BuildContext context) {
-    double changes = currency.value - currency.previous;
+
+    double convertCurrency(double rubAmount, double exchangeRate) {
+      return rubAmount / exchangeRate;
+    }
+
+
+    double changes = widget.currency.value - widget.currency.previous;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          currency.name,
+          widget.currency.name,
         ),
         elevation: 0,
       ),
@@ -23,7 +36,7 @@ class CurrencyDetailScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.max,
           children: [
             Text(
-              currency.charCode,
+              widget.currency.charCode,
               style: const TextStyle(fontSize: 60, fontWeight: FontWeight.w800),
               textAlign: TextAlign.center,
             ),
@@ -34,12 +47,12 @@ class CurrencyDetailScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Text(
-                  "ID: ${currency.id}",
+                  "ID: ${widget.currency.id}",
                   style: const TextStyle(
                       fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  "NumCode: ${currency.numCode}",
+                  "NumCode: ${widget.currency.numCode}",
                   style: const TextStyle(
                       fontSize: 18, fontWeight: FontWeight.w600),
                 ),
@@ -56,7 +69,7 @@ class CurrencyDetailScreen extends StatelessWidget {
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w600),
                 ),
-                if (currency.value < currency.previous)
+                if (widget.currency.value < widget.currency.previous)
                   const Icon(
                     Icons.arrow_drop_down,
                     color: Colors.red,
@@ -78,7 +91,7 @@ class CurrencyDetailScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.w500),
                 ),
                 Text(
-                  "${currency.value}₽",
+                  "${widget.currency.value}₽",
                   style: const TextStyle(
                       fontSize: 38, fontWeight: FontWeight.w800),
                 ),
@@ -95,11 +108,55 @@ class CurrencyDetailScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.w500),
                 ),
                 Text(
-                  "${currency.previous}₽",
+                  "${widget.currency.previous}₽",
                   style: const TextStyle(
                       fontSize: 38, fontWeight: FontWeight.w800),
                 ),
               ],
+            ),
+            const SizedBox(
+              height: 32,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: TextField(
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  double rubAmount = double.tryParse(value) ?? 0;
+                  double convertedAmount =
+                      convertCurrency(rubAmount, widget.currency.value);
+
+                  setState(() {
+                    convertedValue = convertedAmount;
+                  });
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Введите сумму в рублях',
+                  suffixIcon: Icon(Icons.currency_ruble), 
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            Text(
+              'Можно купить: ${convertedValue.toStringAsFixed(2)}',
+              style: const TextStyle(
+                fontSize: 24,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              widget.currency.name,
+              style: const TextStyle(
+                fontSize: 18,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

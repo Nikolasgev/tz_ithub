@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/currency.dart';
 import '../screens/currency_detail_screen.dart';
 
-class CurrencyItem extends StatelessWidget {
-  const CurrencyItem({super.key, required this.currency});
+class CurrencyItem extends StatefulWidget {
+  const CurrencyItem({super.key, required this.currency, 
+  });
 
   final Currency currency;
 
+  @override
+  State<CurrencyItem> createState() => _CurrencyItemState();
+}
+
+class _CurrencyItemState extends State<CurrencyItem> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -16,7 +23,7 @@ class CurrencyItem extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => CurrencyDetailScreen(
-              currency: currency,
+              currency: widget.currency,
             ),
           ),
         );
@@ -31,7 +38,7 @@ class CurrencyItem extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                currency.name,
+                widget.currency.name,
                 style: const TextStyle(fontSize: 20),
                 textAlign: TextAlign.center,
               ),
@@ -44,11 +51,11 @@ class CurrencyItem extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        currency.charCode,
+                        widget.currency.charCode,
                         style: const TextStyle(
                             fontSize: 30, fontWeight: FontWeight.w800),
                       ),
-                      if (currency.value > currency.previous)
+                      if (widget.currency.value > widget.currency.previous)
                         const Icon(
                           Icons.arrow_drop_up,
                           size: 60,
@@ -66,16 +73,37 @@ class CurrencyItem extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        "${currency.value.toStringAsFixed(2)}₽",
+                        "${widget.currency.value.toStringAsFixed(2)}₽",
                         style: const TextStyle(
                             fontSize: 36, fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        "${currency.previous.toStringAsFixed(2)}₽",
+                        "${widget.currency.previous.toStringAsFixed(2)}₽",
                         style: const TextStyle(
                             fontSize: 20, fontWeight: FontWeight.w300),
                       ),
                     ],
+                  ),
+                  InkWell(
+                    onTap: () async {
+                      SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
+                      bool newFavorite = !widget.currency.isFavorite;
+                      prefs
+                          .setBool('favorite_${widget.currency.charCode}', newFavorite)
+                          .then((_) {
+                        setState(() {
+                          widget.currency.isFavorite = newFavorite;
+                        });
+                      });
+                    },
+                    child: Icon(
+                      widget.currency.isFavorite ? Icons.star : Icons.star,
+                      color: widget.currency.isFavorite
+                          ? Colors.amber
+                          : Colors.grey,
+                      size: 50,
+                    ),
                   ),
                 ],
               ),

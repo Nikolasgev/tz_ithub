@@ -6,6 +6,7 @@ class Currency {
   final String name;
   final double value;
   final double previous;
+  bool isFavorite;
 
   Currency({
     required this.id,
@@ -15,6 +16,7 @@ class Currency {
     required this.name,
     required this.value,
     required this.previous,
+    this.isFavorite = false,
   });
 
   factory Currency.fromJson(Map<String, dynamic> json) {

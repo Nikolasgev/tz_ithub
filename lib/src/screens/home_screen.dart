@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tz_ithub/src/screens/settings_screen.dart';
 
 import '../models/currency.dart';
 import '../services/api_service.dart';
 import '../widgets/currency_item.dart';
+import 'favorite_currencies_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,14 +27,23 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       Map<String, dynamic> data = await ApiService().fetchAllCurrencies();
       List<Currency> fetchedCurrencies = [];
+      SharedPreferences prefs =
+          await SharedPreferences.getInstance(); // Добавлено
+
       data['Valute'].forEach((key, value) {
-        fetchedCurrencies.add(Currency.fromJson(value));
+        Currency currency = Currency.fromJson(value);
+
+        bool isFavorite =
+            prefs.getBool('favorite_${currency.charCode}') ?? false;
+        currency.isFavorite = isFavorite;
+
+        fetchedCurrencies.add(currency);
       });
       setState(() {
         currencies = fetchedCurrencies;
       });
+    // ignore: empty_catches
     } catch (e) {
-      print(e);
     }
   }
 
@@ -40,18 +51,36 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Currency list"),
+        title: const Text("Список валют"),
         elevation: 0,
         actions: [
-          IconButton(onPressed: (){
-            Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SettingsScreen(
-            ),
+          
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FavoriteCurrenciesScreen(
+                    favoriteCurrencies: currencies
+                        .where((currency) => currency.isFavorite)
+                        .toList(),
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.star),
           ),
-        );
-          }, icon: const Icon(Icons.settings))
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.settings),
+          ),
         ],
       ),
       body: Padding(
